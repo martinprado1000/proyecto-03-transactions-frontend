@@ -34,13 +34,8 @@ import type { GridColDef } from "@mui/x-data-grid";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 
-// import { useUsersContext } from "../../../../contexts/UsersContext";
-// import { useAuthContext } from "../../../../contexts/AuthUserContext";
-// import {
-//   ActionUserEnum,
-//   RolesEnum,
-//   type UserType,
-// } from "../../../../contexts/interfaces/users.interfaces";
+import { format } from 'date-fns';
+
 import {
   validateAmountFn,
   validateDateFn,
@@ -70,6 +65,7 @@ function EditToolbar(props: EditToolbarProps) {
   // setRows: Función para actualizar el estado de las filas del DataGrid, viene con las filas actuales.
   // setRowModesModel: Función para controlar los modos de edición de las filas
   const { setRows, setRowModesModel } = props; // Destructura las 2 funciones
+  const date: string = format(new Date(), 'yyyy-MM-dd');
   const handleClick = () => {
     const id = randomId();
     setRows((oldRows: TransactionsType[]) => [
@@ -77,7 +73,7 @@ function EditToolbar(props: EditToolbarProps) {
         id,
         userId: "",
         description: "",
-        date: new Date(),
+        date,
         amount: 0,
         category: CategoryEnum.VARIOS,
         meansOfPayment: MeansOfPaymentEnum.OTROS,
@@ -158,11 +154,6 @@ export default function TransactionsDataGrid() {
     }
   }, [transactions]);
 
-  // let valueOptionsRoles: RolesEnum[];
-  // userAuth?.roles?.includes(RolesEnum.SUPERADMIN)
-  //   ? (valueOptionsRoles = roles)
-  //   : (valueOptionsRoles = [RolesEnum.USER, RolesEnum.OPERATOR]);
-
   const validateUserId = validateUserIdFn(rows);
   const validateDescription = validateDescriptionFn(rows);
   const validateDate = validateDateFn(rows);
@@ -238,13 +229,11 @@ export default function TransactionsDataGrid() {
   const processRowUpdate = async (transaction: TransactionsType) => {
     // if (transaction.isActive === "Activo") transaction.isActive = true;
     // if (transaction.isActive === "Inactivo") transaction.isActive = false;
-    console.log(transaction)
     let res;
     if (transaction.isNew) {
       // NUEVA TRANSACCIÓN ---------------------------------------------------------------------.
       const tempId = transaction.id as string; // Guardamos el ID temporal
       res = await actionTransaction(ActionTransactionEnum.add, transaction);
-      console.log(res)
       if (res.error) {
         Swal.fire({
           title: res.message,
@@ -356,8 +345,8 @@ export default function TransactionsDataGrid() {
       field: "amount",
       headerName: "Amount",
       type: "number",
-      //headerAlign: "right",
-      //align: "right",
+      headerAlign: "left",
+      align: "left",
       flex: 1,
       minWidth: 120,
       editable: true,

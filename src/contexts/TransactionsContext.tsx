@@ -83,7 +83,6 @@ export function TransactionsProvider({ children }: TransactionsProviderPropsType
         }
 
         case ActionTransactionEnum.add: {
-          console.log(data)
           res = await fetch(`${URL_BACK}/api/transactions`, {
             method: "POST",
             //credentials: "include", // Permito que el backend cargue y elimine las cookie en el front
@@ -93,7 +92,6 @@ export function TransactionsProvider({ children }: TransactionsProviderPropsType
             },
             body: JSON.stringify(data),
           });
-          console.log(res)
           break;
         }
 

@@ -47,7 +47,7 @@ export interface TransactionsType {
   id?: string;
   userId?: string;
   description?: string;
-  date?: Date;
+  date?: String;
   amount?: number;
   category?: CategoryEnum;
   meansOfPayment?: MeansOfPaymentEnum;
