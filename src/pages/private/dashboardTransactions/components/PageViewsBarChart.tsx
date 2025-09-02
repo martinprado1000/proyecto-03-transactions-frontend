@@ -5,19 +5,35 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useTheme } from '@mui/material/styles';
+import { useTransactionsContext } from 'src/contexts/TransactionsContext';
 
 export default function PageViewsBarChart() {
   const theme = useTheme();
+  const { statisticsMonth } = useTransactionsContext();
+
+  if (!statisticsMonth || !statisticsMonth.sixMonth) {
+    return null; // o un Skeleton loader
+  }
+
   const colorPalette = [
     (theme.vars || theme).palette.primary.dark,
     (theme.vars || theme).palette.primary.main,
-    (theme.vars || theme).palette.primary.light,
   ];
+
+  // Extraigo labels (meses) y valores
+  const months = statisticsMonth.sixMonth.map((item: any) => item.month);
+  const incomes = statisticsMonth.sixMonth.map((item: any) => item.income);
+  const egresses = statisticsMonth.sixMonth.map((item: any) => item.egress);
+
+  // Totales (ejemplo para mostrar arriba de la card)
+  const totalIncome = incomes.reduce((acc: number, val: number) => acc + val, 0);
+  const totalEgress = egresses.reduce((acc: number, val: number) => acc + val, 0);
+
   return (
     <Card variant="outlined" sx={{ width: '100%' }}>
       <CardContent>
         <Typography component="h2" variant="subtitle2" gutterBottom>
-          Page views and downloads
+          Income vs Egress (last 6 months)
         </Typography>
         <Stack sx={{ justifyContent: 'space-between' }}>
           <Stack
@@ -26,46 +42,45 @@ export default function PageViewsBarChart() {
               alignContent: { xs: 'center', sm: 'flex-start' },
               alignItems: 'center',
               gap: 1,
+              justifyContent: 'space-between', flexGrow: '1'
             }}
           >
             <Typography variant="h4" component="p">
-              1.3M
+              ${totalIncome - totalEgress}
             </Typography>
-            <Chip size="small" color="error" label="-8%" />
-          </Stack>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Page views and downloads for the last 6 months
+            <Chip
+              size="small"
+              color={totalIncome >= totalEgress ? 'success' : 'error'}
+              label={`${((totalIncome - totalEgress) / (totalEgress || 1) * 100).toFixed(1)}%`}
+            />
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Totals from the last 6 months
           </Typography>
+          </Stack>
+
         </Stack>
+
         <BarChart
           borderRadius={8}
           colors={colorPalette}
-          xAxis={
-            [
-              {
-                scaleType: 'band',
-                categoryGapRatio: 0.5,
-                data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-              },
-            ] as any
-          }
+          xAxis={[
+            {
+              scaleType: 'band',
+              categoryGapRatio: 0.5,
+              data: months,
+            },
+          ]}
           series={[
             {
-              id: 'page-views',
-              label: 'Page views',
-              data: [2234, 3872, 2998, 4125, 3357, 2789, 2998],
+              id: 'income',
+              label: 'Income',
+              data: incomes,
               stack: 'A',
             },
             {
-              id: 'downloads',
-              label: 'Downloads',
-              data: [3098, 4215, 2384, 2101, 4752, 3593, 2384],
-              stack: 'A',
-            },
-            {
-              id: 'conversions',
-              label: 'Conversions',
-              data: [4051, 2275, 3129, 4693, 3904, 2038, 2275],
+              id: 'egress',
+              label: 'Egress',
+              data: egresses,
               stack: 'A',
             },
           ]}
@@ -74,7 +89,7 @@ export default function PageViewsBarChart() {
           grid={{ horizontal: true }}
           slotProps={{
             legend: {
-              hidden: true,
+              hidden: false, // muestro leyenda para distinguir Income/Egress
             },
           }}
         />

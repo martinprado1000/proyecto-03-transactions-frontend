@@ -24,9 +24,9 @@ export default function HighlightedCard() {
           Explore your data
         </Typography>
         <Typography sx={{ color: 'text.secondary', mb: '8px' }}>
-          Uncover performance and visitor insights with our data wizardry.
+          For more statistics, consult the advanced plan.
         </Typography>
-        <Button
+        {/* <Button
           variant="contained"
           size="small"
           color="primary"
@@ -34,7 +34,7 @@ export default function HighlightedCard() {
           fullWidth={isSmallScreen}
         >
           Get insights
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );
