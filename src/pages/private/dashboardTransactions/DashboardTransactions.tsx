@@ -18,6 +18,10 @@ import {
   treeViewCustomizations,
 } from "../theme/customizations";
 import DashboardTransactionsMainGrid from "./components/DashboardTransactionsMainGrid";
+import Copyright from "src/components/customIcons/Copyright";
+import { Grid } from "@mui/material";
+import SessionsChart from "./components/SessionsChart";
+import PageViewsBarChart from "./components/PageViewsBarChart";
 
 const xThemeComponents = {
   ...chartsCustomizations,
@@ -38,8 +42,16 @@ declare module "@mui/material/styles" {
         text: any;
         divider: any;
         background: {
-          default: readonly string[] | BackgroundColor | readonly BackgroundColor[] | undefined;
-          paper: readonly string[] | BackgroundColor | readonly BackgroundColor[] | undefined;
+          default:
+            | readonly string[]
+            | BackgroundColor
+            | readonly BackgroundColor[]
+            | undefined;
+          paper:
+            | readonly string[]
+            | BackgroundColor
+            | readonly BackgroundColor[]
+            | undefined;
           defaultChannel: string;
         };
       };
@@ -47,18 +59,17 @@ declare module "@mui/material/styles" {
   }
 }
 
-export default function DashboardTransactions(props: { disableCustomTheme?: boolean }) {
+export default function DashboardTransactions(props: {
+  disableCustomTheme?: boolean;
+}) {
   return (
     <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: "flex" }}>
-
         {/* -------- Menu lateral -------------------------------------------------------------------------------------- */}
-        {/* <SideMenu /> */}  {/* Se carga desde app */} 
-
+        {/* <SideMenu /> */} {/* Se carga desde app */}
         {/* -------- Menu responsivo ----------------------------------------------------------------------------------- */}
-        {/* <NavbarMenu /> */}  {/* Se carga desde app */} 
-
+        {/* <NavbarMenu /> */} {/* Se carga desde app */}
         <Box
           component="main"
           sx={(theme) => ({
@@ -84,6 +95,22 @@ export default function DashboardTransactions(props: { disableCustomTheme?: bool
             {/* -------- Body ------------------------------------------------------------------------------------------- */}
             <DashboardTransactionsMainGrid />
 
+            <Grid
+              container
+              spacing={2}
+              columns={12}
+              sx={{ mb: (theme) => theme.spacing(2) }}
+            >
+              <Grid size={{ xs: 12, md: 12 }}>
+                <SessionsChart />
+              </Grid>
+              <Grid size={{ xs: 12, md: 12 }}>
+                <PageViewsBarChart />
+              </Grid>
+            </Grid>
+            
+
+            <Copyright sx={{ my: 4 }} />
           </Stack>
         </Box>
       </Box>

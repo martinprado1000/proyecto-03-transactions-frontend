@@ -12,7 +12,7 @@ import { MenuRoute } from "./protectedRoute/MenuRoute";
 
 import { DashboardLoading } from "./components/dashboard-loading/DashboardLoading";
 const Dashboard = lazy(() => import("./pages/private/dashboard/Dashboard")); // Lo importo de esta manera porque tiene lazy loading.
-import DashboardTransactions from "./pages/private/dashboardTransactions/DashboardTransactions.js";
+const DashboardTransactions = lazy(() => import("./pages/private/dashboardTransactions/DashboardTransactions"));
 
 import SignIn from "./pages/auth/sign-in/SignIn";
 import SignUp from "./pages/auth/sign-up/SignUp";
@@ -29,7 +29,7 @@ import { RolesEnum } from "./contexts/interfaces/users.interfaces";
 
 const SuspendedDashboard = (
   <Suspense fallback={<DashboardLoading />}>
-    <Dashboard />
+    <DashboardTransactions />
   </Suspense>
 );
 
@@ -81,7 +81,7 @@ const router = createBrowserRouter(
               children: [
                 { path: "/", element: SuspendedDashboard },
                 { path: "/home", element: SuspendedDashboard },
-                { path: "/dashboardTransactions", element: <DashboardTransactions /> },
+                { path: "/dashboardTransactions", element: <Dashboard /> },
                 { path: "/dashboard", element: SuspendedDashboard },
                 { path: "/profile", element: <Profile /> },
                 { path: "/transactions", element: <Transactions /> },

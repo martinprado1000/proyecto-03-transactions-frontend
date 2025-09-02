@@ -1,10 +1,12 @@
-import { useTheme } from '@mui/material/styles';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import { LineChart } from '@mui/x-charts/LineChart';
+import { useTheme } from "@mui/material/styles";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import { LineChart } from "@mui/x-charts/LineChart";
+import { format } from "date-fns";
+import { useTransactionsContext } from "src/contexts/TransactionsContext";
 
 function AreaGradient({ color, id }: { color: string; id: string }) {
   return (
@@ -17,131 +19,105 @@ function AreaGradient({ color, id }: { color: string; id: string }) {
   );
 }
 
-function getDaysInMonth(month: number, year: number) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString('en-US', {
-    month: 'short',
-  });
-  const daysInMonth = date.getDate();
-  const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
-  }
-  return days;
-}
-
 export default function SessionsChart() {
   const theme = useTheme();
-  const data = getDaysInMonth(4, 2024);
+  const { statisticsMonth } = useTransactionsContext();
 
-  const colorPalette = [
-    theme.palette.primary.light,
-    theme.palette.primary.main,
-    theme.palette.primary.dark,
+  if (!statisticsMonth) {
+    return null; // o un skeleton loader
+  }
+
+  // Armamos labels (fechas últimos 30 días)
+  const labels =
+    statisticsMonth.income?.map((d) => format(new Date(d.date), "MMM d")) ?? [];
+
+  // Series con income / egress / all
+  const series = [
+    {
+      id: "income",
+      label: "Income",
+      showMark: false,
+      curve: "linear",
+      stack: "total",
+      area: true,
+      data: statisticsMonth.income.map((d) => d.amount),
+    },
+    {
+      id: "egress",
+      label: "Egress",
+      showMark: false,
+      curve: "linear",
+      stack: "total",
+      area: true,
+      data: statisticsMonth.egress.map((d) => d.amount),
+    },
+    {
+      id: "all",
+      label: "All Transactions",
+      showMark: false,
+      curve: "linear",
+      stack: "total",
+      area: true,
+      data: statisticsMonth.all.map((d) => d.amount),
+    },
   ];
 
   return (
-    <Card variant="outlined" sx={{ width: '100%' }}>
+    <Card variant="outlined" sx={{ width: "100%" }}>
       <CardContent>
         <Typography component="h2" variant="subtitle2" gutterBottom>
-          Sessions
+          Transactions Overview
         </Typography>
-        <Stack sx={{ justifyContent: 'space-between' }}>
+        <Stack sx={{ justifyContent: "space-between", mb: 1 }}>
           <Stack
             direction="row"
-            sx={{
-              alignContent: { xs: 'center', sm: 'flex-start' },
-              alignItems: 'center',
-              gap: 1,
-            }}
+            sx={{ justifyContent: 'space-between', flexGrow: '1', gap: 1 }}
           >
             <Typography variant="h4" component="p">
-              13,277
+              {statisticsMonth.all.reduce((acc, d) => acc + d.amount, 0)} U$A
             </Typography>
-            <Chip size="small" color="success" label="+35%" />
+            <Chip size="small" color="success" label="+0%" />
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              Income / Egress / All - Last 30 days
+            </Typography>
           </Stack>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Sessions per day for the last 30 days
-          </Typography>
+          {/* <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            Income / Egress / All - últimos 30 días
+          </Typography> */}
         </Stack>
+
         <LineChart
-          colors={colorPalette}
           xAxis={[
             {
-              scaleType: 'point',
-              data,
+              scaleType: "point",
+              data: labels,
               tickInterval: (index, i) => (i + 1) % 5 === 0,
             },
           ]}
-          series={[
-            {
-              id: 'direct',
-              label: 'Direct',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              area: true,
-              stackOrder: 'ascending',
-              data: [
-                300, 900, 600, 1200, 1500, 1800, 2400, 2100, 2700, 3000, 1800, 3300,
-                3600, 3900, 4200, 4500, 3900, 4800, 5100, 5400, 4800, 5700, 6000,
-                6300, 6600, 6900, 7200, 7500, 7800, 8100,
-              ],
-            },
-            {
-              id: 'referral',
-              label: 'Referral',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              area: true,
-              stackOrder: 'ascending',
-              data: [
-                500, 900, 700, 1400, 1100, 1700, 2300, 2000, 2600, 2900, 2300, 3200,
-                3500, 3800, 4100, 4400, 2900, 4700, 5000, 5300, 5600, 5900, 6200,
-                6500, 5600, 6800, 7100, 7400, 7700, 8000,
-              ],
-            },
-            {
-              id: 'organic',
-              label: 'Organic',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              stackOrder: 'ascending',
-              data: [
-                1000, 1500, 1200, 1700, 1300, 2000, 2400, 2200, 2600, 2800, 2500,
-                3000, 3400, 3700, 3200, 3900, 4100, 3500, 4300, 4500, 4000, 4700,
-                5000, 5200, 4800, 5400, 5600, 5900, 6100, 6300,
-              ],
-              area: true,
-            },
-          ]}
+          series={series}
           height={250}
           margin={{ left: 50, right: 20, top: 20, bottom: 20 }}
           grid={{ horizontal: true }}
           sx={{
-            '& .MuiAreaElement-series-organic': {
-              fill: "url('#organic')",
+            "& .MuiAreaElement-series-income": {
+              fill: "url('#income')",
             },
-            '& .MuiAreaElement-series-referral': {
-              fill: "url('#referral')",
+            "& .MuiAreaElement-series-egress": {
+              fill: "url('#egress')",
             },
-            '& .MuiAreaElement-series-direct': {
-              fill: "url('#direct')",
+            "& .MuiAreaElement-series-all": {
+              fill: "url('#all')",
             },
           }}
           slotProps={{
             legend: {
-              hidden: true,
+              hidden: false, // mostramos leyenda para distinguir
             },
           }}
         >
-          <AreaGradient color={theme.palette.primary.dark} id="organic" />
-          <AreaGradient color={theme.palette.primary.main} id="referral" />
-          <AreaGradient color={theme.palette.primary.light} id="direct" />
+          <AreaGradient color={theme.palette.success.main} id="income" />
+          <AreaGradient color={theme.palette.error.main} id="egress" />
+          <AreaGradient color={theme.palette.primary.main} id="all" />
         </LineChart>
       </CardContent>
     </Card>

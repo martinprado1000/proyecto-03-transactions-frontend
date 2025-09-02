@@ -75,11 +75,11 @@ export default function UsersMainGrid() {
         </Grid>
       </Grid> */}
 
-      <Grid container spacing={2} columns={12}>
+      {/* <Grid container spacing={2} columns={12}>
         <Grid size={{ xs: 12, lg: 12 }}>
           <UsersDataGrid3 />
         </Grid>
-      </Grid>
+      </Grid> */}
 
       {/* <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         Overview

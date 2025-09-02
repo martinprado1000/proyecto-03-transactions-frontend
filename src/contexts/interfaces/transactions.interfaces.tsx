@@ -5,6 +5,7 @@ export enum ActionTransactionEnum {
   add = 'add',
   edit = 'edit',
   delete = 'delete',
+  statistics = 'statistics'
 }
 
 export type ActionTransactionTypes = {
@@ -12,6 +13,7 @@ export type ActionTransactionTypes = {
   (action: ActionTransactionEnum.getByTerm, id: string): Promise<TransactionsType | undefined>;
   (action: ActionTransactionEnum.add | ActionTransactionEnum.edit, data: TransactionsType): Promise<TransactionsType | ApiErrorType | undefined>;
   (action: ActionTransactionEnum.delete , id: string): Promise<void>;  // Es void porque no retorna nada el delete
+  (action: ActionTransactionEnum.statistics): Promise<TransactionsType[] | undefined>;
 };
 
 export enum CategoryEnum {
@@ -46,6 +48,22 @@ export enum AreaEnum {
 export interface TransactionsType {
   id?: string;
   userId?: string;
+  userEmail: string | undefined;
+  description?: string;
+  date?: String;
+  amount?: number;
+  category?: CategoryEnum;
+  meansOfPayment?: MeansOfPaymentEnum;
+  observation?: string;  // Agrego "Activo" e "Inactivo" como tipo porque eso es lo que retorna el formulario.
+  area?: AreaEnum;
+  isActive: true,
+  isNew?: boolean | "Activo" | "Inactivo";
+}
+
+export interface statisticsMonthType {
+  id?: string;
+  userId?: string;
+  userEmail: string | undefined;
   description?: string;
   date?: String;
   amount?: number;
@@ -63,8 +81,22 @@ export interface ApiErrorType {
   statusCode: number;
 }
 
+export interface DayAmount {
+  date: string;
+  amount: number;
+}
+
+export interface statisticsMonthType {
+  income: DayAmount[];
+  egress: DayAmount[];
+  all: DayAmount[];
+  sixMonth: any
+}
+
 // Interface para tipar el contexto
 export interface TransactionsContextType {
+  getStatistics: () => Promise<void>;
+  statisticsMonth: statisticsMonthType | null;
   getTransactions: () => Promise<void>;
   transactions: TransactionsType[] | null;
   setTransactions: React.Dispatch<React.SetStateAction<TransactionsType[] | null>>;

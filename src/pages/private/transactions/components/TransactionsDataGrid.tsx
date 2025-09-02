@@ -34,13 +34,14 @@ import type { GridColDef } from "@mui/x-data-grid";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 
-import { format } from 'date-fns';
+import { format } from "date-fns";
 
 import {
   validateAmountFn,
   validateDateFn,
   validateDescriptionFn,
   validateObservationFn,
+  validateUserEmailFn,
   validateUserIdFn,
 } from "./ValidationsDataGrid";
 import {
@@ -51,6 +52,8 @@ import {
   type TransactionsType,
 } from "src/contexts/interfaces/transactions.interfaces";
 import { useTransactionsContext } from "src/contexts/TransactionsContext";
+import { useUsersContext } from "src/contexts/UsersContext";
+import type { UserType } from "src/contexts/interfaces/users.interfaces";
 
 // Type props del EditToolbar
 interface EditToolbarProps {
@@ -65,13 +68,14 @@ function EditToolbar(props: EditToolbarProps) {
   // setRows: Función para actualizar el estado de las filas del DataGrid, viene con las filas actuales.
   // setRowModesModel: Función para controlar los modos de edición de las filas
   const { setRows, setRowModesModel } = props; // Destructura las 2 funciones
-  const date: string = format(new Date(), 'yyyy-MM-dd');
+  const date: string = format(new Date(), "yyyy-MM-dd");
   const handleClick = () => {
     const id = randomId();
     setRows((oldRows: TransactionsType[]) => [
       {
         id,
         userId: "",
+        userEmail: "",
         description: "",
         date,
         amount: 0,
@@ -138,30 +142,40 @@ export default function TransactionsDataGrid() {
     areas,
     actionTransaction,
   } = useTransactionsContext();
+  const { getUsers, users } = useUsersContext();
   //const { userAuth, userLogOut } = useAuthContext();
   const [rows, setRows] = useState<TransactionsType[]>([]);
   const [rowModesModel, setRowModesModel] = useState<Record<string, any>>({});
+  const [usersEmail, setUsersEmail] = useState<string[]>([]);
 
   useEffect(() => {
     // Obtenemos los usuarios.
     getTransactions();
+    getUsers();
   }, []);
 
   // Actualizar rows cuando cambian los usuarios
   useEffect(() => {
     if (transactions) {
       setRows(transactions);
+      // Filtrar emails undefined y asegurar que sean strings
+      const validEmails =
+        users
+          ?.map((user) => user.email)
+          .filter((email): email is string => email !== undefined) || [];
+      setUsersEmail(validEmails);
     }
   }, [transactions]);
 
   const validateUserId = validateUserIdFn(rows);
+  const validateUserEmail = validateUserEmailFn(rows);
   const validateDescription = validateDescriptionFn(rows);
   const validateDate = validateDateFn(rows);
   const validateAmount = validateAmountFn(rows);
   const validateObservation = validateObservationFn(rows);
 
   const handleRowEditStop = (params: any, event: any) => {
-    // Estos dos parametros los declaro como any porque MUI tiene un bug con en los types
+    // Estos dos parametros los declaro como any porque MUI tiene un bug con los types
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
       event.defaultMuiPrevented = true;
     }
@@ -232,6 +246,10 @@ export default function TransactionsDataGrid() {
     let res;
     if (transaction.isNew) {
       // NUEVA TRANSACCIÓN ---------------------------------------------------------------------.
+      const findUser = users?.find(
+        (user) => user.email === transaction.userEmail
+      );
+      transaction.userId = findUser?.id;
       const tempId = transaction.id as string; // Guardamos el ID temporal
       res = await actionTransaction(ActionTransactionEnum.add, transaction);
       if (res.error) {
@@ -244,9 +262,14 @@ export default function TransactionsDataGrid() {
         throw new Error(res.message);
       }
 
+      // // Si es exitoso, actualiza el estado
+      // const newRow = {
+      //   ...res, // Usa los datos del backend
+      //   isNew: false,
+      // };
       // Si es exitoso, actualiza el estado
       const newRow = {
-        ...res, // Usa los datos del backend
+        ...transaction, // Usa los datos enviados al backend
         isNew: false,
       };
 
@@ -264,8 +287,11 @@ export default function TransactionsDataGrid() {
       return newRow;
     } else {
       // EDITO TRANSACCIÓN ---------------------------------------------------------------------.
-      res = await actionTransaction(ActionTransactionEnum.edit, transaction, transaction.id);
-      console.log(res)
+      res = await actionTransaction(
+        ActionTransactionEnum.edit,
+        transaction,
+        transaction.id
+      );
       if (res.error) {
         Swal.fire({
           title: res.message,
@@ -285,24 +311,43 @@ export default function TransactionsDataGrid() {
   };
 
   const columns: GridColDef[] = [
+    // {
+    //   field: "userId",
+    //   headerName: "UserId",
+    //   //headerAlign: "right",
+    //   //align: "right",
+    //   flex: 1,
+    //   minWidth: 100,
+    //   editable: true,
+    //   preProcessEditCellProps: async (params) => {
+    //     const errorMessage = await validateUserId({
+    //       id: params.id,
+    //       userId: params.props.value.toString(),
+    //     });
+    //     // const value = { ...params.props, error: errorMessage };
+    //     //console.log(value); // obtengo el objeto entero editado, aca tambien veo la propiedad error,
+    //     return { ...params.props, error: errorMessage };
+    //   },
+    //   renderEditCell: renderEditData,
+    // },
     {
-      field: "userId",
-      headerName: "UserId",
-      //headerAlign: "right",
-      //align: "right",
+      field: "userEmail",
+      headerName: "UserEmail",
       flex: 1,
       minWidth: 100,
       editable: true,
-      preProcessEditCellProps: async (params) => {
-        const errorMessage = await validateUserId({
-          id: params.id,
-          userId: params.props.value.toString(),
-        });
-        // const value = { ...params.props, error: errorMessage };
-        //console.log(value); // obtengo el objeto entero editado, aca tambien veo la propiedad error,
-        return { ...params.props, error: errorMessage };
-      },
-      renderEditCell: renderEditData,
+      type: "singleSelect",
+      valueOptions:
+        usersEmail?.filter((email): email is string => email !== undefined) ||
+        [],
+      // preProcessEditCellProps: async (params) => {
+      //   const errorMessage = await validateUserEmail({
+      //     id: params.id,
+      //     userEmail: params.props.value?.toString(), // Cambié de observation a userEmail
+      //   });
+      //   return { ...params.props, error: errorMessage };
+      // },
+      // renderEditCell: renderEditData,
     },
     {
       field: "description",
@@ -353,7 +398,7 @@ export default function TransactionsDataGrid() {
       preProcessEditCellProps: async (params) => {
         const errorMessage = await validateAmount({
           id: params.id,
-          amount: params.props.value.toString(),
+          amount: params.props.value,
         });
         // const value = { ...params.props, error: errorMessage };
         return { ...params.props, error: errorMessage };
@@ -542,7 +587,7 @@ export default function TransactionsDataGrid() {
       columns={columns}
       editMode="row" // habilita la edicion de la fila completa por lo tanto podemos usar el tab para movernos entre las columnas.
       getRowClassName={(
-        params // Alterna clases CSS 'even' y 'odd' para filas pares e impares, No esta funcionando
+        params // Alterna clases CSS 'even' y 'odd' para filas pares e impares
       ) => (params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd")}
       initialState={{
         // Estado inicial de la paginacion

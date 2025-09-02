@@ -3,6 +3,7 @@ import type { TransactionsType } from "src/contexts/interfaces/transactions.inte
 interface ValidationData {
   id?: string | number;
   userId?: string;
+  userEmail?: string | undefined;
   description?: string;
   date?: string;
   amount?: string;
@@ -11,10 +12,22 @@ interface ValidationData {
 
 const specialCharacters = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ'-]+$/;
 
+// export const validateUserIdFn =
+//   (rows: TransactionsType[]) => async (data: ValidationData) => {
+//     const { id, userId } = data;
+//     if (!userId) return `El id de usuario es obligatorio.`;
+//     return null;
+//   };
+
 export const validateUserIdFn =
   (rows: TransactionsType[]) => async (data: ValidationData) => {
     const { id, userId } = data;
-    if (!userId) return `El id de usuario es obligatorio.`;
+    return null;
+  };
+
+  export const validateUserEmailFn =
+  (rows: TransactionsType[]) => async (data: ValidationData) => {
+    //const { id, observation } = data;
     return null;
   };
 

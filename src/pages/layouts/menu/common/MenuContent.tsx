@@ -31,6 +31,7 @@ const mainListItemsAdmin = [
 const mainListItems = [
   { text: "Home", to: "/home", icon: <HomeRoundedIcon /> },
   { text: "Profile", to: "/profile", icon: <PersonRoundedIcon /> },
+  { text: "Transactions", to: "/transactions", icon: <MonetizationOnIcon /> },
   // { text: 'Analytics', icon: <AnalyticsRoundedIcon /> },
   // { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
 ];

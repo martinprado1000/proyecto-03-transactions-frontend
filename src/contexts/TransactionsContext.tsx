@@ -9,18 +9,23 @@ import {
   CategoryEnum,
   MeansOfPaymentEnum,
   type ApiErrorType,
+  type statisticsMonthType,
   type TransactionsContextType,
   type TransactionsType,
-} from "./interfaces/transactions.interfaces";;
+} from "./interfaces/transactions.interfaces";
 
 // Crear el contexto con tipo
-const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
+const TransactionsContext = createContext<TransactionsContextType | undefined>(
+  undefined
+);
 // Este es nuestro hook que exporta el contexto
 export function useTransactionsContext() {
   const context = useContext(TransactionsContext);
   if (!context) {
     // Hacemos esta validacion para asegurar que los datos sangan del contexto
-    throw new Error("useTransactionsContext must be used within a TransactionsProvider");
+    throw new Error(
+      "useTransactionsContext must be used within a TransactionsProvider"
+    );
   }
   return context;
 }
@@ -30,31 +35,66 @@ interface TransactionsProviderPropsType {
   children: React.ReactNode;
 }
 
-const categories = [CategoryEnum.COMIDA, CategoryEnum.DEPORTES, CategoryEnum.ESTUDIOS, CategoryEnum.IMPUESTOS, CategoryEnum.OCIO, CategoryEnum.SERVICIO, CategoryEnum.TRANSPORTE, CategoryEnum.VARIOS, CategoryEnum.VIVIENDA];
-const meansOfPayment = [MeansOfPaymentEnum.CHEQUE, MeansOfPaymentEnum.CREDITO, MeansOfPaymentEnum.DEVITO, MeansOfPaymentEnum.EFECTIVO, MeansOfPaymentEnum.OTROS, MeansOfPaymentEnum.TRANSFERENCIA]
-const areas = [AreaEnum.ADMINISTRACION, AreaEnum.COMPRAS, AreaEnum.OTROS, AreaEnum.VENTAS]
-
+const categories = [
+  CategoryEnum.COMIDA,
+  CategoryEnum.DEPORTES,
+  CategoryEnum.ESTUDIOS,
+  CategoryEnum.IMPUESTOS,
+  CategoryEnum.OCIO,
+  CategoryEnum.SERVICIO,
+  CategoryEnum.TRANSPORTE,
+  CategoryEnum.VARIOS,
+  CategoryEnum.VIVIENDA,
+];
+const meansOfPayment = [
+  MeansOfPaymentEnum.CHEQUE,
+  MeansOfPaymentEnum.CREDITO,
+  MeansOfPaymentEnum.DEVITO,
+  MeansOfPaymentEnum.EFECTIVO,
+  MeansOfPaymentEnum.OTROS,
+  MeansOfPaymentEnum.TRANSFERENCIA,
+];
+const areas = [
+  AreaEnum.ADMINISTRACION,
+  AreaEnum.COMPRAS,
+  AreaEnum.OTROS,
+  AreaEnum.VENTAS,
+];
 
 // Provider
-export function TransactionsProvider({ children }: TransactionsProviderPropsType) {
+export function TransactionsProvider({
+  children,
+}: TransactionsProviderPropsType) {
   const navigate = useNavigate();
+
   const { userAuth } = useAuthContext();
-  const [transactions, setTransactions] = useState<TransactionsType[] | null>(null);
+  const [transactions, setTransactions] = useState<TransactionsType[] | null>(
+    null
+  );
   const [loading] = useState<boolean>(false);
   const [error] = useState<string | null>(null);
-
-  const getTransactions = async () => {
+    const getTransactions = async () => {
     const resTransactions = await actionTransaction(ActionTransactionEnum.get);
     setTransactions(resTransactions);
     return;
   };
+
+  const [statisticsMonth, setStatisticsMonth] = useState<statisticsMonthType | null>(null);
+  const getStatistics = async () => {
+    const resStatistics = await actionTransaction(
+      ActionTransactionEnum.statistics
+    );
+    setStatisticsMonth(resStatistics);
+    return;
+  };
+
+
 
   const actionTransaction = async (
     action: ActionTransactionEnum,
     data?: TransactionsType,
     id?: string
   ): Promise<any> => {
-
     // Esta validacion no la hago porque se que existe userAuth gracias al protectedRoute.
     // if (!userAuth || !userAuth.token) {
     //   throw new Error("Usuario no autenticado o token faltante");
@@ -120,10 +160,23 @@ export function TransactionsProvider({ children }: TransactionsProviderPropsType
           }
           break;
 
+        case ActionTransactionEnum.statistics:
+          {
+            res = await fetch(`${URL_BACK}/api/transactions/statisticsMonth`, {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            if (res.status === 204) return;
+          }
+          break;
       }
 
-      const responsBackend: TransactionsType | TransactionsType[] | ApiErrorType | undefined =
-      await res.json();
+      const responsBackend:
+        | TransactionsType
+        | TransactionsType[]
+        | ApiErrorType
+        | undefined = await res.json();
 
       if (res.status == 401 && responsBackend && "message" in responsBackend) {
         // responsBackend && 'message' in responsBackend  hago esa parte de la validación para que type script sepa que es de tipo ApiError.
@@ -142,7 +195,19 @@ export function TransactionsProvider({ children }: TransactionsProviderPropsType
 
   return (
     <TransactionsContext.Provider
-      value={{ getTransactions, transactions, setTransactions, actionTransaction, categories, meansOfPayment, areas, loading, error }}
+      value={{
+        getStatistics,
+        statisticsMonth,
+        getTransactions,
+        transactions,
+        setTransactions,
+        actionTransaction,
+        categories,
+        meansOfPayment,
+        areas,
+        loading,
+        error,
+      }}
     >
       {children}
     </TransactionsContext.Provider>
